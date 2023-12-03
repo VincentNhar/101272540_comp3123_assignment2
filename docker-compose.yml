@@ -1,0 +1,54 @@
+version: "3.8"
+
+services:
+  mongodb:
+    image: mongo:latest
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=rootadmin
+      - MONGO_INITDB_ROOT_PASSWORD=password
+    ports:
+      - "27017:27017"
+    container_name: mongodb-fullstack
+    restart: unless-stopped
+    networks:
+      - fullstack
+
+  backend:
+    build: ./backend
+    ports:
+      - 8080:8080
+    container_name: backend-fullstack
+    environment:
+      - DB_HOST=mongodb
+      - DB_USER=rootadmin
+      - DB_PASSWORD=password
+      - DB_NAME=EmployeeManagementDB
+      - DB_PORT=27017
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    restart: unless-stopped
+    networks:
+      - fullstack
+    depends_on:
+      - mongodb
+
+  frontend:
+    build: ./frontend
+    restart: unless-stopped
+    container_name: frontend-fullstack
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend/src:/apps/src
+    stdin_open: true
+    tty: true
+    networks:
+      - fullstack
+    depends_on:
+      - backend
+
+networks:
+  fullstack:
+      driver: bridge
+    
